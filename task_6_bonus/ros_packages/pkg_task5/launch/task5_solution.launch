@@ -1,0 +1,41 @@
+<launch>
+	
+
+	<!-- Launch Task-5 Simulation Environment in Gazebo -->
+	<include file="$(find pkg_vb_sim)/launch/task6_simulation.launch" />
+	<include file="$(find pkg_vb_sim)/launch/two_ur5_move_group.launch" />
+
+	<!-- Add Shelf to Moveit! Planning Scene in RViz -->
+    <group ns="ur5_1">
+    	<arg name="scene_file" default="$(find pkg_task5)/config/rviz/ur5_1_shelf.scene"/> 
+    	<node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
+    	
+    </group>	
+
+    <!-- Add conveyor to Moveit! Planning Scene in RViz -->
+    <group ns="ur5_2">
+    	<arg name="scene_file" default="$(find pkg_task5)/config/rviz/ur5_2_conveyer.scene"/> 
+    	<node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
+	</group>
+
+	<rosparam file ="$(find pkg_ros_iot_bridge)/config/config_pyiot.yaml"/>
+    <node pkg="pkg_ros_iot_bridge" type="node_action_server_ros_iot_bridge.py" name="node_action_server_ros_iot_bridge" 
+        output="screen"/>
+    
+    <node pkg="pkg_task5" type="pkg_col_det.py" name="pkg_col_det" 
+        output="screen"/>
+            
+    <node pkg="pkg_task5" type="task5_1.py" name="task5_1" 
+        output="screen"/>
+    
+    
+
+	<!-- Recording Bag File for Submission -->
+    <arg name="record" default="false"/>
+    <arg name="rec_name" default="t5.bag"/>
+
+    <group if="$(arg record)">
+        <node name="rosbag_record_pick" pkg="rosbag" type="record"
+       args="record -O $(find pkg_task5)/bag_files/$(arg rec_name) --chunksize=10 /eyrc/vb/ur5_1/vacuum_gripper/logical_camera/ur5_1 /eyrc/vb/ur5_2/vacuum_gripper/logical_camera/ur5_2 my_topic your_topic dispatch_topic /eyrc/vb/RpAaSgSa/orders" output="screen"/>
+    </group>
+</launch>
